@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FakeCall WA - Dynamic Island</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #25D366;
+            --bg: #0b0c10;
+            --card: #161b22;
+            --island: #000000;
+            --text: #ffffff;
+            --text-dim: #8b949e;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* --- DYNAMIC ISLAND --- */
+        .dynamic-island {
+            background: var(--island);
+            width: 160px;
+            height: 35px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: default;
+            user-select: none;
+        }
+
+        .dynamic-island:hover {
+            width: 200px;
+            background: #111;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--primary);
+            animation: pulse 2s infinite;
+        }
+
+        .island-text {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--primary);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- MAIN UI --- */
+        .wrapper {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+        }
+
+        .field { margin-bottom: 18px; }
+        label { 
+            display: block; 
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            color: var(--text-dim); 
+            margin-bottom: 8px; 
+            padding-left: 5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            color: white;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(37, 211, 102, 0.03);
+        }
+
+        .btn-main {
+            width: 100%;
+            padding: 18px;
+            background: var(--primary);
+            border: none;
+            border-radius: 16px;
+            color: #000;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-main:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        /* --- LOADING & RESULT --- */
+        #loadingBar {
+            display: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        #progress {
+            width: 0%;
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.3s;
+        }
+
+        #resultArea {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-top: 20px;
+            animation: fadeIn 0.8s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        canvas {
+            width: 100%;
+            max-width: 300px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn-save {
+            background: white;
+            color: black;
+            padding: 12px 35px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.3s;
+        }
+
+        .btn-save:hover { background: #ddd; }
+    </style>
+</head>
+<body>
+
+    <div class="dynamic-island">
+        <div class="status-dot"></div>
+        <span class="island-text">Server On</span>
+    </div>
+
+    <div class="wrapper">
+        <div class="card">
+            <div class="field">
+                <label>Target Name</label>
+                <input type="text" id="name" placeholder="Nama Pemanggil" value="My Bini">
+            </div>
+
+            <div class="field">
+                <label>Call Duration</label>
+                <input type="text" id="duration" placeholder="00:15" value="00:08">
+            </div>
+
+            <div class="field">
+                <label>Avatar Core</label>
+                <input type="file" id="avatarInput" accept="image/*">
+            </div>
+
+            <button class="btn-main" onclick="startGeneration()">GENERATE CALL</button>
+            
+            <div id="loadingBar"><div id="progress"></div></div>
+        </div>
+
+        <div id="resultArea">
+            <canvas id="mainCanvas" width="720" height="1280"></canvas>
+            <button class="btn-save" onclick="downloadImg()">Download Result</button>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+
+    async function startGeneration() {
+        const loadBar = document.getElementById('loadingBar');
+        const progress = document.getElementById('progress');
+        const result = document.getElementById('resultArea');
+
+        result.style.display = 'none';
+        loadBar.style.display = 'block';
+        
+        // Fake Loading Progress
+        let width = 0;
+        const interval = setInterval(async () => {
+            width += Math.random() * 25;
+            if (width >= 100) {
+                width = 100;
+                clearInterval(interval);
+                await draw();
+                loadBar.style.display = 'none';
+                result.style.display = 'flex';
+            }
+            progress.style.width = width + '%';
+        }, 150);
+    }
+
+    async function draw() {
+        const name = document.getElementById('name').value || 'Unknown';
+        const duration = document.getElementById('duration').value || '00:00';
+        const avatarFile = document.getElementById('avatarInput').files[0];
+
+        const bgImg = await loadImage('https://files.catbox.moe/pmhptv.jpg');
+        let avatarImg;
+
+        if (avatarFile) {
+            avatarImg = await new Promise(resolve => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(loadImage(e.target.result));
+                reader.readAsDataURL(avatarFile);
+            });
+        } else {
+            avatarImg = await loadImage('https://files.catbox.moe/nwvkbt.png');
+        }
+
+        ctx.clearRect(0, 0, 720, 1280);
+        ctx.drawImage(bgImg, 0, 0, 720, 1280);
+
+        // Name & Duration (WA Android Style)
+        ctx.font = 'normal 45px sans-serif';
+        ctx.fillStyle = 'white';
+        ctx.textAlign = 'center';
+        ctx.fillText(name, 360, 150);
+
+        ctx.font = '30px sans-serif';
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText(duration, 360, 205);
+
+        // Circular Avatar
+        const r = 160, cx = 360, cy = 640;
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+
+        const aspect = avatarImg.width / avatarImg.height;
+        let dw, dh;
+        if (aspect > 1) { dh = r * 2; dw = avatarImg.width * (dh / avatarImg.height); }
+        else { dw = r * 2; dh = avatarImg.height * (dw / avatarImg.width); }
+        ctx.drawImage(avatarImg, cx - dw/2, cy - dh/2, dw, dh);
+        ctx.restore();
+    }
+
+    function loadImage(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = url;
+        });
+    }
+
+    function downloadImg() {
+        const link = document.createElement('a');
+        link.download = `FakeCall_${Date.now()}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.click();
+    }
+</script>
+
+</body>
+</html>
